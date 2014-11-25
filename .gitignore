@@ -27,3 +27,12 @@
 *.i*86
 *.x86_64
 *.hex
+
+# CMake build directory
+build/*
+
+# Backup files
+*~
+
+# Vim session files
+*.vim
