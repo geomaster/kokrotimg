@@ -111,7 +111,7 @@ typedef struct kok_queue_t {
 typedef struct kok_data_t {
     byte      *src_img, /* W * H */
               *binary_img, /* W * H */
-              *qr_code; /* QRW * QRH */
+              qr_code[ QR_BASESIZE ][ QR_BASESIZE ]; /* QRW * QRH */
     dimension src_img_w,
               src_img_h,
               qr_w;
@@ -120,7 +120,7 @@ typedef struct kok_data_t {
     kok_pixelstrip_t *pixel_strips; /* max(W, H) */
 
     ct_t      *cumulative_table, /* W * H */
-              *qr_ct; /* QRW * QRH */
+              qr_ct[ QR_BASESIZE ][ QR_BASESIZE ]; /* QRW * QRH */
 
     kok_point_t *finder_candidates; /* MAX_FINDER_CANDIDATES */
     kok_quad_t qr_finders[ MAX_QR_CODES ][ 3 ];
@@ -164,7 +164,7 @@ typedef struct kok_data_t {
             peak_resident_set_bytes;
 
     int context_finder_id;
-    kok_qr_module *final_qr; /* QRW * QRH */
+    kok_qr_module final_qr[ QR_BASESIZE ][ QR_BASESIZE ]; /* QRW * QRH */
 } kok_data_t;
 
 typedef struct kok_memory_block_t {
@@ -210,6 +210,33 @@ typedef struct kok_memory_block_t {
 
 #define VALID_POINT(pt, w, h) \
     (pt.x >= 0 && pt.x < w && pt.y >= 0 && pt.y < h)
+
+#define ALLOCATE_FIELD(field, type, count) \
+    do { \
+        k->field = (type*) kokmalloc(k, (count) * sizeof(type)); \
+        if (!k->field) { \
+            macrocosm_dealloc_all(k); \
+            return(macro_err_memory_allocation_failure); \
+        } \
+    } while (0)
+
+#define DEALLOCATE_FIELD(field) \
+    do { \
+        kokfree(k, k->field); \
+        k->field = NULL; \
+    } while (0)
+
+#define ZERO_FIELD(field, type, count) \
+    do { \
+        memset(k->field, 0, sizeof(type) * (count)); \
+    } while(0)
+
+#define ALLOCATE_ZERO_FIELD(field, type, count) \
+    do { \
+        ALLOCATE_FIELD(field, type, count); \
+        ZERO_FIELD(field, type, count); \
+    } while(0)
+
 
 /* Convenience macros. Just to ensure no one has fucked with them
  * before, as C code is often prone to (including this one).

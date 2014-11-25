@@ -570,7 +570,7 @@ void black_white_module_size(kok_data_t* k, int startx, int starty, int dx, int 
 
 #       define GO_WHILE_VAL(v) \
     while (x >= 0 && x < QR_BASESIZE && y >= 0 && y < QR_BASESIZE && \
-            k->qr_code[M2D(x, y, k->qr_w)] == (v)) { \
+            k->qr_code[y][x] == (v)) { \
         x += dx; \
         y += dy; \
     }

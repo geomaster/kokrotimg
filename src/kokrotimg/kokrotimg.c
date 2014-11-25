@@ -1,5 +1,6 @@
 #include "kokrotimg.h"
 #include "macrocosm.h"
+#include "microcosm.h"
 #include "common.h"
 #include <malloc.h>
 #include <string.h>
@@ -54,6 +55,11 @@ kokrot_err_t kokrot_find_code(byte* in_Image, dimension in_ImageWidth, dimension
     if (ret != macro_err_success) {
         return( kokrot_err_generic_processing_failure );
     }
+
+    kokrot_component = "kokrotimg";
+    LOGS("Macrocosm returned no errors. Proceeding to decode first QR");
+
+    kokrotimg_microcosm(k, 0);
 
     return( -1 );
 }

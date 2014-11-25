@@ -31,6 +31,7 @@ static void           decode_qr(kok_data_t* k, int qr_idx);
 typedef enum microcosm_err_t {
     micro_err_success,
     micro_err_timing_parse_failed,
+    micro_err_virtual_pattern_place_failed,
     micro_err_unknown
 } microcosm_err_t;
   

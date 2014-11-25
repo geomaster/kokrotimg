@@ -2,6 +2,7 @@
 #include <math.h>
 #include <limits.h>
 #include <string.h>
+#include <stdlib.h>
 
 /* TODO: check the vailidity of these, too lazy to recheck */
 const int ALIGNMENT_PATTERN_COORDINATES[ MAX_QR_VERSION ][ 1 + MAX_ALIGNMENT_PATTERNS ] = {
@@ -447,7 +448,7 @@ int parse_timing_patterns(kok_data_t* k)
             for (i = 0; i < count; ++i)
                 modulepositions[0][scanlinesx][i] = findings[i].x;
             ++scanlinesx;
-        }
+        } else { LOGF("bad count x %d", count); }
 
         double x0 = (Ax1 * alpha + Ax0 * (1 - alpha)),
                x1 = (Zx1 * alpha + Zx0 * (1 - alpha)),
@@ -461,7 +462,7 @@ int parse_timing_patterns(kok_data_t* k)
             for (i = 0; i < count; ++i)
                 modulepositions[1][scanlinesy][i] = findings[i].y;
             ++scanlinesy;
-        }
+        } else { LOGF("bad count y %d", count); }
 
         if (scanlinesx >= MAX_TIMING_SCANLINES || scanlinesy >= MAX_TIMING_SCANLINES)
             break;
@@ -533,7 +534,7 @@ int parse_timing_patterns(kok_data_t* k)
             }
         }
 
-        if (mini <= 0) {
+        if (mini < 0) {
             return(0); /* this should happen very rarely */
         }
 
@@ -570,8 +571,6 @@ int parse_timing_patterns(kok_data_t* k)
     k->vertical_timing_slope = (double)(Zx1 - Ax1) / (double)(Zy - Ay) ;
     k->horizontal_timing_start_y = By1;
     k->vertical_timing_start_x = Zx1;
-    /* printf("i have determined the real dimension is %d (they said %d)\n", bestdimension + */
-    /*         14, initialdimension); */
 
     return(1);
 }
@@ -1013,6 +1012,8 @@ void decode_qr(kok_data_t* k, int qr_idx)
     k->decoded_qr_dimension = imodules;
     k->decoded_qr_version = (imodules - 21) / 4 + 1;
 
+    LOGF("Guessed version %d (dimension %d)", k->decoded_qr_version, k->decoded_qr_dimension);
+
 }
 
 void read_final_qr(kok_data_t* k)
@@ -1152,6 +1153,53 @@ void flip_y(byte* buf, dimension w, dimension h)
             swap(buf[M2D(i, j, w)], buf[M2D(i, w - j - 1, w)]);
         }
     }
+}
+
+microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
+{
+    LOGS("Entering Microcosm");
+    kokrot_component = "microcosm";
+
+    LOGS("Projecting code");
+    project_code(k, k->qr_codes[qr_idx], NULL);
+    LOGS("Done projecting code");
+
+    LOGS("Binarizing code");
+    binarize_code(k);
+    LOGS("Done binarizing code");
+
+    LOGS("Guessing code version");
+    decode_qr(k, qr_idx);
+    LOGS("Done guessing code version");
+
+    LOGS("Fixing code orientation");
+    fix_code_orientation(k);
+    LOGS("Done fixing code orientation");
+
+    LOGS("Parsing timing patterns");
+    if (!parse_timing_patterns(k)) {
+        LOGS("Timing pattern parsing failed.");
+        return(micro_err_timing_parse_failed);
+    }
+    LOGS("Done parsing timing patterns");
+
+    LOGS("Conjecturing alignment pattern locations");
+    conjecture_alignment_patterns(k);
+    LOGS("Done conjecturing alignment pattern locations");
+
+    LOGS("Placing virtual alignment patterns");
+    if (!place_virtual_alignment_patterns(k)) {
+        LOGS("Placing virtual alignment patterns failed.");
+        return(micro_err_virtual_pattern_place_failed);
+    }
+    LOGS("Done placing virtual alignment patterns");
+
+    LOGS("Reading final QR");
+    read_final_qr(k);
+    LOGS("Done reading final QR");
+
+    LOGS("Exiting Microcosm, all successful");
+    return(micro_err_success);
 }
 
 

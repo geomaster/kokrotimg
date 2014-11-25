@@ -2,6 +2,7 @@ add_library(kokrotimg SHARED
     common.c
     instrumentation-posix.c
     macrocosm.c
+    microcosm.c
     kokrotimg.c
 )
 

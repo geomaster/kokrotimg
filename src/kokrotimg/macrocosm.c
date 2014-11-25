@@ -1053,32 +1053,6 @@ macrocosm_err_t kokrotimg_macrocosm(kok_data_t* k, int *out_code_count)
     double allocOverhead = 0.0;
 #endif
 
-#define ALLOCATE_FIELD(field, type, count) \
-    do { \
-        k->field = (type*) kokmalloc(k, (count) * sizeof(type)); \
-        if (!k->field) { \
-            macrocosm_dealloc_all(k); \
-            return(macro_err_memory_allocation_failure); \
-        } \
-    } while (0)
-
-#define DEALLOCATE_FIELD(field) \
-    do { \
-        kokfree(k, k->field); \
-        k->field = NULL; \
-    } while (0)
-
-#define ZERO_FIELD(field, type, count) \
-    do { \
-        memset(k->field, 0, sizeof(type) * (count)); \
-    } while(0)
-
-#define ALLOCATE_ZERO_FIELD(field, type, count) \
-    do { \
-        ALLOCATE_FIELD(field, type, count); \
-        ZERO_FIELD(field, type, count); \
-    } while(0)
-
 #ifdef INSTRUMENTATION_ENABLED
 #define ADD_ALLOC_OVERHEAD() \
     allocOverhead += STOP_INSTRUMENTATION();
