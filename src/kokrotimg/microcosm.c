@@ -89,20 +89,6 @@ void project_code(kok_data_t* k, kok_quad_t code, int* pxsum)
                 l4ystep = (double)l4.y / QR_BASESIZE,
                 l4xstep = (double)l4.x / QR_BASESIZE;
 
-    /* some of the lines are really horizontal, swap everything
-     * and recalculate (FIXME) */
-    if (l1step == 0.0 || l3ystep == 0.0 || l4ystep == 0.0) {
-        swap(code.p3, code.p1);
-
-        l3.x = code.p3.x - code.p2.x, l4.y = code.p3.y - code.p2.y;
-        l4.x = code.p4.x - code.p1.x, l4.y = code.p4.y - code.p1.y;
-
-        l3ystep = (double)l3.y / QR_BASESIZE,
-                l3xstep = (double)l3.x / QR_BASESIZE,
-                l4ystep = (double)l4.y / QR_BASESIZE,
-                l4xstep = (double)l4.x / QR_BASESIZE;
-    }
-
     double xl3 = code.p2.x, xl4 = code.p1.x, yl3, yl4;
     int xi = 0, yi = 0;
 
@@ -560,7 +546,7 @@ int parse_timing_patterns(kok_data_t* k)
                 for (i = 0; i < modulecounts[direction][mini]; ++i) {
                     kok_point_t pa = { .y = 0, .x = modulepositions[direction][mini][i] },
                                 pb = { .y = QR_BASESIZE - 1, .x = modulepositions[direction][mini][i] };
-                    DEBUG_LINE(k, pa, pb, "X grid line", KOKROTDBG_CLASS_FIRST_GRID);
+                    DEBUG_LINE(k, pa, pb, "X grid line", KOKROTDBG_CLASS_MICRO_FIRST_GRID);
                     /* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkblue, QR_BASESIZE, pa, pb); */
                 }
             }
@@ -568,7 +554,7 @@ int parse_timing_patterns(kok_data_t* k)
                 for (i = 0; i < modulecounts[direction][mini]; ++i) {
                     kok_point_t pa = { .y = modulepositions[direction][mini][i], .x = 0 },
                                 pb = { .y = modulepositions[direction][mini][i], .x = QR_BASESIZE - 1};
-                    DEBUG_LINE(k, pa, pb, "Y grid line", KOKROTDBG_CLASS_FIRST_GRID);
+                    DEBUG_LINE(k, pa, pb, "Y grid line", KOKROTDBG_CLASS_MICRO_FIRST_GRID);
                     /* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkred, QR_BASESIZE, pa, pb); */
                 }
 
@@ -1097,6 +1083,21 @@ void read_final_qr_quad(kok_data_t* k, kok_alignpat_t q[4])
     quad[3].imgspace_pos.x += qrmod;
     quad[3].imgspace_pos.y += qrmod;
 
+    if (k->dbg_sink) {
+        static sdimension xs[4], ys[4];
+        int i;
+
+        static const int order[] = { 0, 1, 3, 2 };
+        for (i = 0; i < 4; ++i) {
+            int j = order[i];
+
+            xs[i] = (int)round(q[j].imgspace_pos.x);
+            ys[i] = (int)round(q[j].imgspace_pos.y);
+        }
+
+        k->dbg_sink->debug_add_polygon(xs, ys, 4, 0, NULL, KOKROTDBG_CLASS_MICRO_FINAL_GRID, k->dbg_sink->callback_param);
+    }
+
     int modulesx = quad[1].qrspace_pos.x - quad[0].qrspace_pos.x + 1,
         modulesy = quad[3].qrspace_pos.y - quad[1].qrspace_pos.y + 1;
 
@@ -1125,7 +1126,7 @@ void read_final_qr_quad(kok_data_t* k, kok_alignpat_t q[4])
                 ptf2pt(lerp(leftendspot, rightendspot, alphax))
             };
 
-            read_quad_module(&k->qr_code[0][0], bounds, x + quad[0].qrspace_pos.x, y + quad[0].qrspace_pos.y, &k->final_qr[0][0]);
+            read_quad_module(k, &k->qr_code[0][0], bounds, x + quad[0].qrspace_pos.x, y + quad[0].qrspace_pos.y, &k->final_qr[0][0]);
         }
     }
 }
@@ -1146,7 +1147,7 @@ void interpret_final_qr(kok_data_t* k)
 
 }
 
-void read_quad_module(byte* ibuf, kok_point_t quad[4], int qrx, int qry, kok_qr_module* buf)
+void read_quad_module(kok_data_t* k, byte* ibuf, kok_point_t quad[4], int qrx, int qry, kok_qr_module* buf)
 {
     int pxc = 0;
     int sum = polygon_sum(ibuf, QR_BASESIZE, QR_BASESIZE, quad, 4, &pxc);
@@ -1156,6 +1157,16 @@ void read_quad_module(byte* ibuf, kok_point_t quad[4], int qrx, int qry, kok_qr_
 
     buf[M2D(qrx, qry, MAX_QR_SIZE)].hits += pxc;
     buf[M2D(qrx, qry, MAX_QR_SIZE)].sum += sum;
+
+    if (k->dbg_sink) {
+        kok_point_t p = { quad[0].x + quad[1].x + quad[2].x + quad[3].x, 
+                          quad[0].y + quad[1].y + quad[2].y + quad[3].y, };
+
+        p.x /= 4;
+        p.y /= 4;
+
+        DEBUG_POINT(k, p, NULL, KOKROTDBG_CLASS_MICRO_MODULE_CENTERS);
+    }
 }
 
 void flip_y(byte* buf, dimension w, dimension h)

@@ -21,7 +21,7 @@ static kok_alignpat_t extend_mx(kok_data_t* k, int apx, int apy);
 static kok_alignpat_t extend_my(kok_data_t* k, int apx, int apy);
 static void           read_final_qr(kok_data_t* k);
 static void           read_final_qr_quad(kok_data_t* k, kok_alignpat_t quad[4]);
-static void           read_quad_module(byte* ibuf, kok_point_t quad[4], int qrx, int qry, kok_qr_module* buf);
+static void           read_quad_module(kok_data_t* k, byte* ibuf, kok_point_t quad[4], int qrx, int qry, kok_qr_module* buf);
 static void           interpret_final_qr(kok_data_t* k);
 static int            place_virtual_alignment_patterns(kok_data_t* k);
 static kok_point_t    most_likely_alignment_pattern(kok_data_t* k, kok_point_t wcenter, const int wextent);
@@ -30,6 +30,7 @@ static void           decode_qr(kok_data_t* k, int qr_idx);
 
 static void           dump_projected_code(kok_data_t* k);
 static void           dump_binarized_code(kok_data_t* k);
+static void           dump_pattern_grid(kok_data_t* k);
 
 typedef enum microcosm_err_t {
     micro_err_success,
@@ -39,6 +40,5 @@ typedef enum microcosm_err_t {
 } microcosm_err_t;
   
 microcosm_err_t       kokrotimg_microcosm(kok_data_t* k, int qr_idx);
-
 
 #endif

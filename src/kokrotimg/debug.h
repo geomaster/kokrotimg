@@ -17,13 +17,13 @@ typedef struct kok_debug_sink_t {
     void (* debug_add_backdrop)     (const byte*, const char*, kok_debug_class, void*);
 
     /* (point x, point y, debug string or NULL, class, param) */
-    void (* debug_add_point)        (dimension, dimension, const char*, kok_debug_class, void*);
+    void (* debug_add_point)        (sdimension, sdimension, const char*, kok_debug_class, void*);
 
     /* (point1 x, point1 y, point2 x, point2 y, debug string or NULL, class, param) */
-    void (* debug_add_line)         (dimension, dimension, dimension, dimension, const char*, kok_debug_class, void*);
+    void (* debug_add_line)         (sdimension, sdimension, sdimension, sdimension, const char*, kok_debug_class, void*);
 
     /* (array of point x's, array of point y's, point count, fill (true/false), debug string or NULL, class, param) */
-    void (* debug_add_polygon)      (const dimension*, const dimension*, int, int, const char*, kok_debug_class, void*);
+    void (* debug_add_polygon)      (const sdimension*, const sdimension*, int, int, const char*, kok_debug_class, void*);
 
     /* (time taken in ms, total allocated memory in bytes, type, param) */
     void (* debug_record_metric)    (double, int, kok_metric_type, void*);
@@ -48,11 +48,12 @@ typedef struct kok_debug_sink_t {
 
 #define KOKROTDBG_CLASS_MICRO_FINDER_CENTERS                      2101
 #define KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES                2102
-#define KOKROTDBG_CLASS_FIRST_GRID                                2103
+#define KOKROTDBG_CLASS_MICRO_FIRST_GRID                          2103
 #define KOKROTDBG_CLASS_MICRO_CONJECTURED_APS                     2104
 #define KOKROTDBG_CLASS_MICRO_REFINED_APS                         2105
 #define KOKROTDBG_CLASS_MICRO_FINAL_APS                           2106
 #define KOKROTDBG_CLASS_MICRO_MODULE_CENTERS                      2107
+#define KOKROTDBG_CLASS_MICRO_FINAL_GRID                          2108
 
 #define KOKROTDBG_CLASS_MICRO_QR_CODE_IMAGE                       2201
 #define KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE             2202
