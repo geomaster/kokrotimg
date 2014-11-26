@@ -48,6 +48,16 @@ const int ALIGNMENT_PATTERN_COORDINATES[ MAX_QR_VERSION ][ 1 + MAX_ALIGNMENT_PAT
     /* v40 */ {  7,      6,      30,     58,     86,     114,    142,    170   }
 };
 
+#define DEBUG_LINE(k, p1, p2, s, class) \
+    do { \
+        k->dbg_sink->debug_add_line(p1.x, p1.y, p2.x, p2.y, (s), class, k->dbg_sink->callback_param); \
+    } while(0)
+
+#define DEBUG_POINT(k, p, s, class) \
+    do { \
+        k->dbg_sink->debug_add_point(p.x, p.y, (s), class, k->dbg_sink->callback_param); \
+    } while(0)
+
 /* TODO: Why is this so elaborate?! */
 #define ROTXY90(p)                         \
     { \
@@ -415,16 +425,17 @@ int parse_timing_patterns(kok_data_t* k)
            Zx1 = Zx0 + f2blackx,
            Zy  = finders[2].y - findersizes[2][2] - (findersizes[2][2] + findersizes[2][3]) * 3 / 6;
 
-    /* FIXME: remove debug cruft */
-    /* kok_point_t B0 = { Bx, round(By0) }, C0 = { Cx, round(Cy0) }, */
-    /*             A0 = { round(Ax0), Ay }, Z0 = { round(Zx0), Zy }, */
-    /*             B1 = { Bx, round(By1) }, C1 = { Cx, round(Cy1) }, */
-    /*             A1 = { round(Ax1), Ay }, Z1 = { round(Zx1), Zy }; */
+    if (k->dbg_sink) {
+        kok_point_t B0 = { Bx, round(By0) }, C0 = { Cx, round(Cy0) },
+                    A0 = { round(Ax0), Ay }, Z0 = { round(Zx0), Zy },
+                    B1 = { Bx, round(By1) }, C1 = { Cx, round(Cy1) },
+                    A1 = { round(Ax1), Ay }, Z1 = { round(Zx1), Zy };
 
-    /* bresenham_line(&k->qr_code_dbg[0][0], dbg_magenta, QR_BASESIZE, B0, C0); */
-    /* bresenham_line(&k->qr_code_dbg[0][0], dbg_blue, QR_BASESIZE, B1, C1); */
-    /* bresenham_line(&k->qr_code_dbg[0][0], dbg_red, QR_BASESIZE, A0, Z0); */
-    /* bresenham_line(&k->qr_code_dbg[0][0], dbg_yellow, QR_BASESIZE, A1, Z1); */
+        DEBUG_LINE(k, B0, C0, "X timing pattern line 1", KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES);
+        DEBUG_LINE(k, B1, C1, "X timing pattern line 2", KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES);
+        DEBUG_LINE(k, A0, Z0, "Y timing pattern line 1", KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES);
+        DEBUG_LINE(k, A1, Z1, "Y timing pattern line 2", KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES);
+    }
 
     int modulepositions[ 2 ][ MAX_TIMING_SCANLINES ][ MAX_QR_SIZE ];
     kok_point_t findings[ MAX_QR_SIZE ];
@@ -467,14 +478,6 @@ int parse_timing_patterns(kok_data_t* k)
         if (scanlinesx >= MAX_TIMING_SCANLINES || scanlinesy >= MAX_TIMING_SCANLINES)
             break;
 
-        /* kok_point_t pa = { Bx, y0 }, pb = { Cx, y1 }; */
-        /* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkblue, QR_BASESIZE, pa, pb); */
-        /* printf("dim is %d count is %d\n", k->decoded_qr_dimension, count); */
-        /* if (count == k->decoded_qr_dimension - 14) { */
-        /*     kok_point_t pa = { Bx, y0 }, pb = { Cx, y1 }; */
-        /*     bresenham_line(&k->qr_code_dbg[0][0], dbg_darkblue, QR_BASESIZE, pa, pb); */
-        /* } */
-
     }
 
     int refineddimension, direction, scanlines, bestdimension = initialdimension - 14,
@@ -497,6 +500,11 @@ int parse_timing_patterns(kok_data_t* k)
             }
         }
         scanlines = scanlinesy;
+    }
+
+    if (bestdimension + 14 - 1 < 21) {
+        LOGF("Detected dimension (%d) too small, cannot work with this image", bestdimension + 14 - 1);
+        return(0);
     }
 
     k->decoded_qr_dimension = bestdimension + 14 - 1;
@@ -547,22 +555,25 @@ int parse_timing_patterns(kok_data_t* k)
         }
 
 
-        /* TODO: remove debug cruft */
-        /* if (mini >= 0 && !direction) { */
-        /*     for (i = 0; i < modulecounts[direction][mini]; ++i) { */
-        /*         kok_point_t pa = { .y = 0, .x = modulepositions[direction][mini][i] }, */
-        /*                     pb = { .y = QR_BASESIZE - 1, .x = modulepositions[direction][mini][i] }; */
-        /*         /1* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkblue, QR_BASESIZE, pa, pb); *1/ */
-        /*     } */
-        /* } */
-        /* if (mini >= 0 && direction) { */
-        /*     for (i = 0; i < modulecounts[direction][mini]; ++i) { */
-        /*         kok_point_t pa = { .y = modulepositions[direction][mini][i], .x = 0 }, */
-        /*                     pb = { .y = modulepositions[direction][mini][i], .x = QR_BASESIZE - 1}; */
-        /*         /1* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkred, QR_BASESIZE, pa, pb); *1/ */
-        /*     } */
+        if (k->dbg_sink) {
+            if (mini >= 0 && !direction) {
+                for (i = 0; i < modulecounts[direction][mini]; ++i) {
+                    kok_point_t pa = { .y = 0, .x = modulepositions[direction][mini][i] },
+                                pb = { .y = QR_BASESIZE - 1, .x = modulepositions[direction][mini][i] };
+                    DEBUG_LINE(k, pa, pb, "X grid line", KOKROTDBG_CLASS_FIRST_GRID);
+                    /* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkblue, QR_BASESIZE, pa, pb); */
+                }
+            }
+            if (mini >= 0 && direction) {
+                for (i = 0; i < modulecounts[direction][mini]; ++i) {
+                    kok_point_t pa = { .y = modulepositions[direction][mini][i], .x = 0 },
+                                pb = { .y = modulepositions[direction][mini][i], .x = QR_BASESIZE - 1};
+                    DEBUG_LINE(k, pa, pb, "Y grid line", KOKROTDBG_CLASS_FIRST_GRID);
+                    /* bresenham_line(&k->qr_code_dbg[0][0], dbg_darkred, QR_BASESIZE, pa, pb); */
+                }
 
-        /* } */
+            }
+        }
         scanlines = scanlinesy;
     }
 
@@ -912,7 +923,7 @@ int alignment_pattern_score(kok_data_t* k, kok_point_t center/*, int debugflag*/
         outersum1 = qr_cumulative_sum(k, ptf2pt(lefttop2), ptf2pt(bottomright2)) - innersum,
         outersum = qr_cumulative_sum(k, ptf2pt(lefttop), ptf2pt(bottomright)) - outersum1 - innersum;
 
-    /* if(debugflag){ */
+    /* /1* if(debugflag){ *1/ */
     /* bresenham_line(&k->qr_code_dbg[0][0], dbg_blue,QR_BASESIZE, ptf2pt(lefttop), ptf2pt(bottomright)); */
     /* bresenham_line(&k->qr_code_dbg[0][0], dbg_green,QR_BASESIZE,  ptf2pt(lefttop2), ptf2pt(bottomright2)); */
     /* bresenham_line(&k->qr_code_dbg[0][0], dbg_red, QR_BASESIZE, ptf2pt(lefttop3), ptf2pt(bottomright3)); */
@@ -1009,6 +1020,8 @@ void decode_qr(kok_data_t* k, int qr_idx)
     double q = (-b + sqrt(b*b-4*a*c)) / (2*a);
     double modules = 21 + 4 * round(q);
     int imodules = (int) modules;
+    if (imodules < 21) imodules = 21;
+
     k->decoded_qr_dimension = imodules;
     k->decoded_qr_version = (imodules - 21) / 4 + 1;
 
@@ -1155,6 +1168,20 @@ void flip_y(byte* buf, dimension w, dimension h)
     }
 }
 
+void dump_projected_code(kok_data_t* k)
+{
+    void* param = k->dbg_sink->callback_param;
+
+    k->dbg_sink->debug_resize_canvas(QR_BASESIZE, QR_BASESIZE, param);
+    k->dbg_sink->debug_add_backdrop(&k->qr_code[0][0], "Projected code", KOKROTDBG_CLASS_MICRO_QR_CODE_IMAGE, param);
+}
+
+void dump_binarized_code(kok_data_t* k)
+{
+    void* param = k->dbg_sink->callback_param;
+    k->dbg_sink->debug_add_backdrop(&k->qr_code[0][0], "Binarized code", KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE, param);
+}
+
 microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
 {
     LOGS("Entering Microcosm");
@@ -1164,6 +1191,12 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
     project_code(k, k->qr_codes[qr_idx], NULL);
     LOGS("Done projecting code");
 
+    if (k->dbg_sink) {
+        LOGS("Dumping projected code");
+        dump_projected_code(k);
+        LOGS("Done dumping projected code");
+    }
+
     LOGS("Binarizing code");
     binarize_code(k);
     LOGS("Done binarizing code");
@@ -1172,9 +1205,19 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
     decode_qr(k, qr_idx);
     LOGS("Done guessing code version");
 
+    LOGS("Finding finder patterns in code");
+    find_finder_patterns_in_code(k);
+    LOGS("Done finding finder patterns in code");
+
     LOGS("Fixing code orientation");
     fix_code_orientation(k);
     LOGS("Done fixing code orientation");
+
+    if (k->dbg_sink) {
+        LOGS("Dumping binarized code");
+        dump_binarized_code(k);
+        LOGS("Done dumping binarized code");
+    }
 
     LOGS("Parsing timing patterns");
     if (!parse_timing_patterns(k)) {

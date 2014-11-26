@@ -47,16 +47,15 @@ typedef struct kok_debug_sink_t {
 #define KOKROTDBG_CLASS_MICRO_BASE                                2000
 
 #define KOKROTDBG_CLASS_MICRO_FINDER_CENTERS                      2101
-#define KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_MAIN_LINE            2102
-#define KOKROTDBG_CLASS_MICRO_CONJECTURED_AP_CENTERS              2103
-#define KOKROTDBG_CLASS_MICRO_REFINED_AP_CENTERS                  2104
-#define KOKROTDBG_CLASS_MICRO_FINAL_AP_CENTERS                    2105
-#define KOKROTDBG_CLASS_MICRO_MODULE_CENTERS                      2106
-#define KOKROTDBG_CLASS_MICRO_MODULE_BOXES                        2107
+#define KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES                2102
+#define KOKROTDBG_CLASS_FIRST_GRID                                2103
+#define KOKROTDBG_CLASS_MICRO_CONJECTURED_APS                     2104
+#define KOKROTDBG_CLASS_MICRO_REFINED_APS                         2105
+#define KOKROTDBG_CLASS_MICRO_FINAL_APS                           2106
+#define KOKROTDBG_CLASS_MICRO_MODULE_CENTERS                      2107
 
-#define KOKROTDBG_CLASS_MICRO_QR_CODE_IMAGE                       2208
-#define KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE             2209
-#define KOKROTDBG_CLASS_MICRO_REORIENTED_QR_CODE_IMAGE            2210
+#define KOKROTDBG_CLASS_MICRO_QR_CODE_IMAGE                       2201
+#define KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE             2202
 
 #define KOKROTDBG_METRIC_MACRO_BASE                               1000
 

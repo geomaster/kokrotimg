@@ -28,6 +28,9 @@ static kok_point_t    most_likely_alignment_pattern(kok_data_t* k, kok_point_t w
 static int            alignment_pattern_score(kok_data_t* k, kok_point_t center/*, int debugflag*/);
 static void           decode_qr(kok_data_t* k, int qr_idx);
 
+static void           dump_projected_code(kok_data_t* k);
+static void           dump_binarized_code(kok_data_t* k);
+
 typedef enum microcosm_err_t {
     micro_err_success,
     micro_err_timing_parse_failed,
