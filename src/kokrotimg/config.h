@@ -30,6 +30,16 @@
 #define FINDER_LOCATION_WIDTH_TOLERANCE(w, d2)        (FINDER_LOCATION_WIDTH_GLOBAL_TOLERANCE(d2) * 4 / 10 + FINDER_LOCATION_WIDTH_LOCAL_TOLERANCE(w) * 6 / 10)
 #define FINDER_LOCATION_MIN_CANDIDATE_WIDTH(a)        (2 + (a) / 200000)
 
+#define QR_BINARIZATION_WINDOW                  75
+#define TIMING_PATTERN_SCAN_THRESHOLD               127
+#define ALIGNMENT_PATTERN_SEARCH_WINDOW_MODULES     7
+#define ALIGNMENT_PATTERN_SEARCH_WINDOW(qr_ver)     (ALIGNMENT_PATTERN_SEARCH_WINDOW_MODULES * QR_BASESIZE / (17 + 4 * (qr_ver)))
+
+#define SCORE_INNER_SUM_WEIGHT          150
+#define SCORE_MIDDLE_SUM_WEIGHT         200
+#define SCORE_OUTER_SUM_WEIGHT          340
+
+
 #define FINDER_LOCATION_WIDTH_EQUAL(a, b, d2) (absdiff(a, b) < FINDER_LOCATION_WIDTH_TOLERANCE(b + a, d2) / 2)
 #define FINDER_LOCATION_SATISFIED_PATTERN(b0w, b1w, b2w, b3w, b4w, w, h) \
     (FINDER_LOCATION_WIDTH_EQUAL(b0w, b4w, w*h) && \
@@ -37,7 +47,7 @@
      FINDER_LOCATION_WIDTH_EQUAL((b0w + b1w + b3w + b4w) * 3 / 4, b2w, w*h) && \
      (b0w + b1w + b3w + b4w) >= FINDER_LOCATION_MIN_CANDIDATE_WIDTH(w * h))
 
-#define IGNORABLE_PIXELS                   5
+#define IGNORABLE_PIXELS                   7
 #define QR_PATTERN_WIDTH_TOLERANCE(a, b)   (4 * (a + b) / 8)
 #define QR_PATTERN_WIDTH_EQUAL(a, b)       (absdiff(a, b) < QR_PATTERN_WIDTH_TOLERANCE(a, b))
 

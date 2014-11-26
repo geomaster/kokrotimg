@@ -164,7 +164,7 @@ typedef struct kok_data_t {
             peak_resident_set_bytes;
 
     int context_finder_id;
-    kok_qr_module final_qr[ QR_BASESIZE ][ QR_BASESIZE ]; /* QRW * QRH */
+    kok_qr_module final_qr[ MAX_QR_SIZE ][ MAX_QR_SIZE ]; /* QRW * QRH */
 } kok_data_t;
 
 typedef struct kok_memory_block_t {

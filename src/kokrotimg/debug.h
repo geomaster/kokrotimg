@@ -57,6 +57,7 @@ typedef struct kok_debug_sink_t {
 
 #define KOKROTDBG_CLASS_MICRO_QR_CODE_IMAGE                       2201
 #define KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE             2202
+#define KOKROTDBG_CLASS_MICRO_FINAL_QR_CODE                       2203
 
 #define KOKROTDBG_METRIC_MACRO_BASE                               1000
 

@@ -59,7 +59,12 @@ kokrot_err_t kokrot_find_code(byte* in_Image, dimension in_ImageWidth, dimension
     kokrot_component = "kokrotimg";
     LOGS("Macrocosm returned no errors. Proceeding to decode first QR");
 
-    kokrotimg_microcosm(k, 0);
+    microcosm_err_t micret = kokrotimg_microcosm(k, 0, out_CodeMatrix); 
+    if (micret != micro_err_success) {
+        return( kokrot_err_generic_processing_failure );
+    }
 
-    return( -1 );
+    *out_CodeMatrixDimension = k->decoded_qr_dimension;
+
+    return( kokrot_err_success );
 }

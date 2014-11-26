@@ -30,7 +30,7 @@ static void           decode_qr(kok_data_t* k, int qr_idx);
 
 static void           dump_projected_code(kok_data_t* k);
 static void           dump_binarized_code(kok_data_t* k);
-static void           dump_pattern_grid(kok_data_t* k);
+static void           dump_final_qr(kok_data_t* k, byte* matrix);
 
 typedef enum microcosm_err_t {
     micro_err_success,
@@ -39,6 +39,6 @@ typedef enum microcosm_err_t {
     micro_err_unknown
 } microcosm_err_t;
   
-microcosm_err_t       kokrotimg_microcosm(kok_data_t* k, int qr_idx);
+microcosm_err_t       kokrotimg_microcosm(kok_data_t* k, int qr_idx, byte* outmatrix);
 
 #endif

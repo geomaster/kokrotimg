@@ -6,7 +6,12 @@
 
 /* TODO: check the vailidity of these, too lazy to recheck */
 const int ALIGNMENT_PATTERN_COORDINATES[ MAX_QR_VERSION ][ 1 + MAX_ALIGNMENT_PATTERNS ] = {
-    /* v1 */  {  0,     -1,     -1,     -1,     -1,     -1,     -1,     -1     },
+    /* v1 */  {  2,      6,      14,    -1,     -1,     -1,     -1,     -1     },
+    /* Note for v1: v1's don't actually have alignment patterns. However, we can
+     * pretend they do, conjecture their location and then just not search for the
+     * real location later. This elegant approach simplifies this from a completely
+     * special case to just one if block. */
+
     /* v2 */  {  2,      6,      18,    -1,     -1,     -1,     -1,     -1     },
     /* v3 */  {  2,      6,      22,    -1,     -1,     -1,     -1,     -1     },
     /* v4 */  {  2,      6,      26,    -1,     -1,     -1,     -1,     -1     },
@@ -121,7 +126,6 @@ void project_code(kok_data_t* k, kok_quad_t code, int* pxsum)
     }
 }
 
-#define QR_BINARIZATION_WINDOW                  70
 
 void build_qr_ct(kok_data_t* k)
 {
@@ -629,14 +633,13 @@ void conjecture_alignment_patterns(kok_data_t* k)
     k->alignment_patterns_1D = aligncoordsz;
 }
 
-#define TIMING_PATTERN_SCAN_THRESHOLD               127
-#define ALIGNMENT_PATTERN_SEARCH_WINDOW_MODULES     7
-#define ALIGNMENT_PATTERN_SEARCH_WINDOW(qr_ver)     (ALIGNMENT_PATTERN_SEARCH_WINDOW_MODULES * QR_BASESIZE / (17 + 4 * (qr_ver)))
-
 void find_alignment_patterns(kok_data_t* k)
 {
     /* go through each alignment pattern conjecture, search in a predefined area around it
      * for the most likely position, refine the guess */
+    if (k->decoded_qr_version == 1) 
+        return; /* see comment at the top of the file */
+
     const int *aligncoords = &ALIGNMENT_PATTERN_COORDINATES[ k->decoded_qr_version - 1 ][ 1 ],
               aligncoordsz = *(aligncoords - 1);
 
@@ -661,43 +664,6 @@ void find_alignment_patterns(kok_data_t* k)
 int place_virtual_alignment_patterns(kok_data_t* k)
 {
     int sz = k->alignment_patterns_1D;
-    if (k->decoded_qr_version == 1) {
-        /*TODO: Make this work!*/
-        return( 0 );
-        /* this one has no alignment patterns, we'll treat it like a special case */
-
-        kok_alignpat_t virtualpat;
-        virtualpat.qrspace_pos.x = 14;
-        virtualpat.qrspace_pos.y = 14;
-
-
-        kok_pointf_t origin = {
-            (k->column_start_positions[8] + k->column_start_positions[7]) / 2.0,
-            (k->row_start_positions[8] + k->row_start_positions[7]) / 2.0,
-        };
-
-        double lastcolw2 = (k->column_start_positions[14] - k->column_start_positions[13]) / 1.0,
-               lastroww2 = (k->row_start_positions[14] - k->row_start_positions[13]) / 1.0;
-
-        virtualpat.imgspace_pos.x = (k->column_start_positions[14] + k->column_start_positions[13]) / 2.0 + lastcolw2;
-        virtualpat.imgspace_pos.y = horizontal_slide(origin, k->horizontal_timing_slope,
-                virtualpat.imgspace_pos.x);
-
-        virtualpat.imgspace_pos.x = vertical_slide(virtualpat.imgspace_pos, k->vertical_timing_slope,
-                (k->row_start_positions[14] + k->row_start_positions[13]) / 2.0 + lastroww2);
-        virtualpat.imgspace_pos.y = (k->row_start_positions[14] + k->row_start_positions[13]) / 2.0 + lastroww2;
-
-        virtualpat.active = 2;
-        k->alignment_patterns[1][1] = virtualpat;
-
-        /* k->qr_code_dbg[(int)virtualpat.imgspace_pos.y][(int)virtualpat.imgspace_pos.x] = dbg_cyan; */
-        k->alignment_patterns[0][0].qrspace_pos = makept(6, 6);
-        k->alignment_patterns[0][1].qrspace_pos = makept(6, 14);
-        k->alignment_patterns[0][0].qrspace_pos = makept(14, 6);
-        
-        sz = 2;
-    }
-
     kok_alignpat_t pat;
 
     pat = k->alignment_patterns[0][0];
@@ -711,8 +677,8 @@ int place_virtual_alignment_patterns(kok_data_t* k)
     pat.active = 2;
     double newx = (3 * k->column_start_positions[k->decoded_qr_dimension - 7] -
             k->column_start_positions[k->decoded_qr_dimension - 8]) / 2.0;
-    double slope = (sz - 3 >= 0 ? get_slope(k->alignment_patterns[0][sz - 3].imgspace_pos, 
-                k->alignment_patterns[0][sz - 2].imgspace_pos): k->horizontal_timing_slope);
+    double slope = k->horizontal_timing_slope;//(sz - 3 >= 0 ? get_slope(k->alignment_patterns[0][sz - 3].imgspace_pos, 
+                //k->alignment_patterns[0][sz - 2].imgspace_pos): k->horizontal_timing_slope);
     kok_pointf_t pbase = k->alignment_patterns[0][sz - 2].imgspace_pos;
     pbase.y = horizontal_slide(pbase, slope, newx);
     pbase.x = newx;
@@ -882,10 +848,6 @@ int qr_cumulative_sum(kok_data_t* k, kok_point_t a, kok_point_t b)
 }
 
 #define RECT_AREA(a, b)         (((b).x - (a).x) * ((b).y - (a).y))
-
-#define SCORE_INNER_SUM_WEIGHT          150
-#define SCORE_MIDDLE_SUM_WEIGHT         200
-#define SCORE_OUTER_SUM_WEIGHT          340
 
 int alignment_pattern_score(kok_data_t* k, kok_point_t center/*, int debugflag*/)
 {
@@ -1107,7 +1069,7 @@ void read_final_qr_quad(kok_data_t* k, kok_alignpat_t q[4])
     int x, y;
     for (y = 0; y < modulesy; ++y) {
         double alphay = y * alphastepy,
-               alphaendy = y * alphastepy + alphastepy;
+               alphaendy = (y + 1) * alphastepy;
 
         kok_pointf_t leftspot = lerp(quad[0].imgspace_pos, quad[2].imgspace_pos, alphay),
                      rightspot = lerp(quad[1].imgspace_pos, quad[3].imgspace_pos, alphay),
@@ -1117,7 +1079,7 @@ void read_final_qr_quad(kok_data_t* k, kok_alignpat_t q[4])
         for (x = 0; x < modulesx; ++x) {
 
             double alphax = x * alphastepx, 
-                   alphaendx = x * alphastepx + alphastepx;
+                   alphaendx = (x + 1) * alphastepx;
 
             kok_point_t bounds[] = {
                 ptf2pt(lerp(leftspot, rightspot, alphax)),
@@ -1155,13 +1117,16 @@ void read_quad_module(kok_data_t* k, byte* ibuf, kok_point_t quad[4], int qrx, i
     sum /= 255;
     sum = pxc - sum;
 
-    buf[M2D(qrx, qry, MAX_QR_SIZE)].hits += pxc;
-    buf[M2D(qrx, qry, MAX_QR_SIZE)].sum += sum;
+    if (buf[M2D(qrx, qry, MAX_QR_SIZE)].hits == 0) {
+        buf[M2D(qrx, qry, MAX_QR_SIZE)].hits = pxc;
+        buf[M2D(qrx, qry, MAX_QR_SIZE)].sum = sum;
+    }
 
     if (k->dbg_sink) {
         kok_point_t p = { quad[0].x + quad[1].x + quad[2].x + quad[3].x, 
                           quad[0].y + quad[1].y + quad[2].y + quad[3].y, };
 
+        k->alignment_patterns[0][0].active = 0;
         p.x /= 4;
         p.y /= 4;
 
@@ -1193,7 +1158,35 @@ void dump_binarized_code(kok_data_t* k)
     k->dbg_sink->debug_add_backdrop(&k->qr_code[0][0], "Binarized code", KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE, param);
 }
 
-microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
+void dump_final_qr(kok_data_t* k, byte* outmatrix)
+{
+    double modw = QR_BASESIZE / (double)k->decoded_qr_dimension;
+    int qi, qj;
+
+    memset(&k->qr_code[0][0], 0xff, sizeof(k->qr_code));
+    for (qi = 0; qi < k->decoded_qr_dimension; ++qi) {
+        for (qj = 0; qj < k->decoded_qr_dimension; ++qj) {
+            int starti = floor(qi * modw), endi = ceil((qi + 1) * modw),
+                startj = floor(qj * modw), endj = ceil((qj + 1) * modw);
+
+            int i, j;
+            byte col = (outmatrix[qj + qi * k->decoded_qr_dimension] == 1 ? 0 : 255);
+            for (i = starti; i <= endi; ++i)
+                for (j = startj; j <= endj; ++j) {
+                    if (i < 0 || j < 0 || i >= QR_BASESIZE - 1 || j >= QR_BASESIZE - 1)
+                        continue;
+
+                    k->qr_code[i][j] = col;
+                }
+        }
+    }
+
+    k->dbg_sink->debug_add_backdrop(&k->qr_code[0][0], "Final code", KOKROTDBG_CLASS_MICRO_FINAL_QR_CODE, 
+            k->dbg_sink->callback_param);
+
+}
+
+microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx, byte* outmatrix)
 {
     LOGS("Entering Microcosm");
     kokrot_component = "microcosm";
@@ -1241,6 +1234,10 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
     conjecture_alignment_patterns(k);
     LOGS("Done conjecturing alignment pattern locations");
 
+    LOGS("Refining guesses for alignment pattern locations");
+    find_alignment_patterns(k);
+    LOGS("Done refining guesses for alignment pattern locations");
+
     LOGS("Placing virtual alignment patterns");
     if (!place_virtual_alignment_patterns(k)) {
         LOGS("Placing virtual alignment patterns failed.");
@@ -1251,6 +1248,29 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx)
     LOGS("Reading final QR");
     read_final_qr(k);
     LOGS("Done reading final QR");
+
+    int dim;
+    dim = k->decoded_qr_dimension;
+    
+    LOGS("Writing to output matrix");
+    int i, j;
+    for (i = 0; i < dim; ++i) {
+        for (j = 0; j < dim; ++j) {
+            if (k->final_qr[i][j].hits <= 2 * k->final_qr[i][j].sum)
+                outmatrix[j + i * dim] = 1;
+            else outmatrix[j + i * dim] = 0;
+
+            printf("%c", outmatrix[j + i * dim] + '0');
+        }
+        printf("\n");
+    }
+    LOGS("Done writing to output matrix");
+
+    if (k->dbg_sink) {
+        LOGS("Dumping final QR image");
+        dump_final_qr(k, outmatrix);
+        LOGS("Done dumping final QR image");
+    }
 
     LOGS("Exiting Microcosm, all successful");
     return(micro_err_success);
