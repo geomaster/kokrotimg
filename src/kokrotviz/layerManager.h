@@ -13,7 +13,7 @@ namespace kokrotviz
 
     struct Point
     {
-        dimension X, Y;
+        sdimension X, Y;
     };
     
     struct Line

@@ -19,13 +19,13 @@ static void driver_dbg_add_backdrop(const byte* p1, const char* p2, kok_debug_cl
     { ((KokrotImgDriver*)param)->onDebugAddBackdrop(p1, p2, p3); }
 
 
-static void driver_dbg_add_point(dimension p1, dimension p2, const char* p3, kok_debug_class p4, void* param) 
+static void driver_dbg_add_point(sdimension p1, sdimension p2, const char* p3, kok_debug_class p4, void* param) 
     { ((KokrotImgDriver*)param)->onDebugAddPoint(p1, p2, p3, p4); }
 
-static void driver_dbg_add_line(dimension p1, dimension p2, dimension p3, dimension p4, const char* p5, kok_debug_class p6, void* param) 
+static void driver_dbg_add_line(sdimension p1, sdimension p2, sdimension p3, sdimension p4, const char* p5, kok_debug_class p6, void* param) 
     { ((KokrotImgDriver*)param)->onDebugAddLine(p1, p2, p3, p4, p5, p6); }
 
-static void driver_dbg_add_polygon(const dimension* p1, const dimension* p2, int p3, int p4, const char* p5, kok_debug_class p6, void* param) 
+static void driver_dbg_add_polygon(const sdimension* p1, const sdimension* p2, int p3, int p4, const char* p5, kok_debug_class p6, void* param) 
     { ((KokrotImgDriver*)param)->onDebugAddPolygon(p1, p2, p3, p4, p5, p6); }
 
 static void driver_dbg_record_metric(double p1, int p2, kok_metric_type p3, void* param) 
@@ -209,7 +209,7 @@ void KokrotImgDriver::onDebugAddBackdrop(const byte* data, const char* dbgstr, k
 
 /* copy/paste lol */
 
-void KokrotImgDriver::onDebugAddPoint(dimension x, dimension y, const char* dbgstr, kok_debug_class clazz)
+void KokrotImgDriver::onDebugAddPoint(sdimension x, sdimension y, const char* dbgstr, kok_debug_class clazz)
 {
     Layer& l = mManager->getLayer(clazz);
     Point p = { .X = x, .Y = y };
@@ -224,7 +224,7 @@ void KokrotImgDriver::onDebugAddPoint(dimension x, dimension y, const char* dbgs
     l.getElements().push_back(point);
 }
 
-void KokrotImgDriver::onDebugAddLine(dimension x0, dimension y0, dimension x1, dimension y1, const char* dbgstr, kok_debug_class clazz)
+void KokrotImgDriver::onDebugAddLine(sdimension x0, sdimension y0, sdimension x1, sdimension y1, const char* dbgstr, kok_debug_class clazz)
 {
     Layer& l = mManager->getLayer(clazz);
     Line li = { .A = { .X = x0, .Y = y0 }, .B = { .X = x1, .Y = y1 } };
@@ -251,7 +251,7 @@ void KokrotImgDriver::onDebugRecordMetric(double time, int bytes, kok_metric_typ
     mMetrics[type] = m;
 }
 
-void KokrotImgDriver::onDebugAddPolygon(const dimension* xs, const dimension* ys, int sz, int fill, 
+void KokrotImgDriver::onDebugAddPolygon(const sdimension* xs, const sdimension* ys, int sz, int fill, 
         const char* dbgstr, kok_debug_class clazz)
 {
     Layer& l = mManager->getLayer(clazz);

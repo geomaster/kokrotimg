@@ -84,7 +84,7 @@ void VisualizationWindow::drawLayer(const Cairo::RefPtr<Cairo::Context>& cr, con
     const std::vector<LayerElement>& elems = l.getElements();
     for (auto& elem : elems) {
         Color c = l.getColor();
-        cr->set_source_rgba(c.R / 255.0, c.G / 255.0, c.B / 255.0, 1.0); //l.getOpacity() / 255.0);
+        cr->set_source_rgba(c.R / 255.0, c.G / 255.0, c.B / 255.0, l.getOpacity() / 255.0);
         /* cr->set_source_rgba(1, 0, 0, 1); //l.getOpacity() / 255.0); */
         cr->set_line_cap(Cairo::LINE_CAP_ROUND); 
         cr->set_line_width(l.getLineWidth() / mZoom);

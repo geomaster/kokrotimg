@@ -49,9 +49,9 @@ namespace kokrotviz
         void onDebugMessage(const char*);
         void onDebugResizeCanvas(dimension, dimension);
         void onDebugAddBackdrop(const byte*, const char*, kok_debug_class);
-        void onDebugAddPoint(dimension, dimension, const char*, kok_debug_class);
-        void onDebugAddLine(dimension, dimension, dimension, dimension, const char*, kok_debug_class);
-        void onDebugAddPolygon(const dimension*, const dimension*, int, int, const char*, kok_debug_class);
+        void onDebugAddPoint(sdimension, sdimension, const char*, kok_debug_class);
+        void onDebugAddLine(sdimension, sdimension, sdimension, sdimension, const char*, kok_debug_class);
+        void onDebugAddPolygon(const sdimension*, const sdimension*, int, int, const char*, kok_debug_class);
         void onDebugRecordMetric(double, int, kok_metric_type);
      
         ~KokrotImgDriver();

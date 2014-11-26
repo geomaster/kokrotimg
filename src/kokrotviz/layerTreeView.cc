@@ -48,11 +48,10 @@ void LayerTreeView::populateFrom(LayerManager* Manager)
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MACRO_QR_CODE_QUAD, "QR code quads");
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MACRO_SMALL_BFS_STARTPOINT, "Starting point for small BFS") ;
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MACRO_ORIGINAL_IMAGE, "Original image");
-                DEFINE_MAPPING(KOKROTDBG_METRIC_MACRO_ALLOCATION_OVERHEAD, "Memory allocation");
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MACRO_BINARIZED_IMAGE, "Binarized image");
 
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MICRO_TIMING_PATTERN_LINES, "Timing pattern lines");
-                DEFINE_MAPPING(KOKROTDBG_CLASS_FIRST_GRID, "Initial grid");
+                DEFINE_MAPPING(KOKROTDBG_CLASS_MICRO_FIRST_GRID, "Initial grid");
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MICRO_QR_CODE_IMAGE, "Projected QR code");
                 DEFINE_MAPPING(KOKROTDBG_CLASS_MICRO_BINARIZED_QR_CODE_IMAGE, "Binarized projected QR code");
 
