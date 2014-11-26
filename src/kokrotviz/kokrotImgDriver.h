@@ -60,7 +60,7 @@ namespace kokrotviz
         void *mDLHandle;
         std::string mLibraryPath;
         std::vector<byte> mImageData;
-        int mWidth, mHeight, mSeenFirstDimensions;
+        int mWidth, mHeight, mImageWidth, mImageHeight, mSeenFirstDimensions;
         LayerManager *mManager;
         
         std::map<kok_metric_type, Metric> mMetrics;

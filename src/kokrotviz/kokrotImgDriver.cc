@@ -99,8 +99,8 @@ void KokrotImgDriver::loadImage(const std::string& ImagePath)
 
     mImageData.resize(area);
 
-    mWidth = w;
-    mHeight = h;
+    mImageWidth = w;
+    mImageHeight = h;
     for (int i = 0; i < area; ++i) {
         byte r = pixels[d * i],
              g = pixels[d * i + 1],
@@ -127,6 +127,9 @@ void KokrotImgDriver::scan()
         mWorker.join();
 
     mSeenFirstDimensions = false;
+    mWidth = mImageWidth;
+    mHeight = mImageHeight;
+
     mManager->clearLayers();
     mWorker = std::thread([this] () {
         mScanStartedES.fire();
@@ -151,7 +154,11 @@ void KokrotImgDriver::scan()
         mFullTime = 0.0;
         ((_sig_kokrot_set_debug_sink)mSymbols[ kokrot_set_debug_sink ])(&sink);
 
-        ret = ((_sig_kokrot_find_code)mSymbols[ kokrot_find_code ])(&mImageData[0], mWidth, mHeight, NULL, NULL);
+        dimension dimm;
+        byte *mat = new byte[ KOKROT_MAX_CODE_DIMENSION * KOKROT_MAX_CODE_DIMENSION ];
+        ret = ((_sig_kokrot_find_code)mSymbols[ kokrot_find_code ])(&mImageData[0], mWidth, mHeight, mat, &dimm);
+        delete[] mat;
+
         ((_sig_kokrot_cleanup)mSymbols[ kokrot_cleanup ])();
         
         mScanFinishedES.fire(true);
