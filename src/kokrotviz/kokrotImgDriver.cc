@@ -32,9 +32,11 @@ static void driver_dbg_record_metric(double p1, int p2, kok_metric_type p3, void
     { ((KokrotImgDriver*)param)->onDebugRecordMetric(p1, p2, p3); }
 
 KokrotImgDriver::KokrotImgDriver(const std::string& LibraryPath) : mLibraryPath(""), mDLHandle(nullptr),
-    mWidth(0), mHeight(0), mManager(nullptr)
+    mWidth(0), mHeight(0), mManager(nullptr), mSeenFirstDimensions(false)
 {
     reloadLibrary(LibraryPath);
+    mDimensions[0] = std::make_pair(0, 0);
+    mDimensions[1] = std::make_pair(0, 0);
 }
 
 void KokrotImgDriver::reloadLibrary(const std::string& NewPath)
@@ -124,9 +126,10 @@ void KokrotImgDriver::scan()
     if (mWorker.joinable())
         mWorker.join();
 
+    mSeenFirstDimensions = false;
+    mManager->clearLayers();
     mWorker = std::thread([this] () {
         mScanStartedES.fire();
-        mManager->clearLayers();
 
         kokrot_err_t ret;
         ret = ((_sig_kokrot_initialize)mSymbols[ kokrot_initialize ])();
@@ -165,7 +168,13 @@ void KokrotImgDriver::onDebugResizeCanvas(dimension w, dimension h)
 {
     mWidth = w;
     mHeight = h;
-    mManager->setCanvasDimensions(std::make_pair(w, h));
+    if (mSeenFirstDimensions) {
+        mDimensions[1] = std::make_pair(w, h);
+    } else {
+        mDimensions[0] = std::make_pair(w, h);
+        mManager->setCanvasDimensions(std::make_pair(w, h));
+        mSeenFirstDimensions = true;
+    }
 }
 
 void KokrotImgDriver::onDebugAddBackdrop(const byte* data, const char* dbgstr, kok_debug_class clazz)
@@ -173,6 +182,8 @@ void KokrotImgDriver::onDebugAddBackdrop(const byte* data, const char* dbgstr, k
     static uint64_t BitmapGUID = 1;
 
     Layer& l = mManager->getLayer(clazz);
+    l.setZIndex(-1); /* make it go behind the other ones */
+    mManager->notifyZOrderChange();
 
     /* Gdk/Cairo do not support anything other than 8-bit RGB in their pixmap data */
     byte * rgbdata = new byte[3 * mWidth * mHeight];

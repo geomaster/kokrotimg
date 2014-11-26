@@ -17,6 +17,8 @@ namespace kokrotviz {
 
             return ptr;
         }
+
+        static void hsvToRgb(float H, float S, float V, float* R, float* G, float* B);
     };
 }
 #endif

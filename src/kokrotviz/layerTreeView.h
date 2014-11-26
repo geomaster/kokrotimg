@@ -16,6 +16,8 @@ namespace kokrotviz
         void clear();
         void populateFrom(LayerManager* Manager);
 
+        ~LayerTreeView();
+
     protected:
         class ModelColumnRecord : public Gtk::TreeModelColumnRecord
         {
@@ -23,10 +25,17 @@ namespace kokrotviz
             ModelColumnRecord();
 
             Gtk::TreeModelColumn<Glib::ustring> mNameColumn;
+            Gtk::TreeModelColumn<int> mIndexColumn;
             Gtk::TreeModelColumn<bool> mVisibleColumn;
             Gtk::TreeModelColumn<double> mOpacityColumn,
                 mLineWidthColumn;
         } mColumnRecord;
+
+        void onRowChanged(const Gtk::TreePath path, const Gtk::TreeModel::iterator& iter);
+        bool mPopulating;
+        LayerManager* mManager;
+        Glib::RefPtr<Gtk::TreeView> mActiveView;
+        sigc::connection mConnection;
 
         Glib::RefPtr<Gtk::ListStore> mListStore;
     };

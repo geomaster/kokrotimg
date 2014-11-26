@@ -38,6 +38,14 @@ namespace kokrotviz
         EventSource<bool>& getScanFinishedEventSource() { return mScanFinishedES; }
         EventSource<const std::string&>& getMessageReceivedEventSource() { return mMessageReceivedES; }
 
+        /* only Idx 0 (macro) and Idx 1 (micro) are meaningful */
+        std::pair<dimension, dimension> getDimensionsFor(int Idx) { 
+            if (Idx < 0 || Idx > 1) 
+                return std::make_pair(-1, -1);
+
+            return mDimensions[ Idx ];
+        }
+
         void onDebugMessage(const char*);
         void onDebugResizeCanvas(dimension, dimension);
         void onDebugAddBackdrop(const byte*, const char*, kok_debug_class);
@@ -52,10 +60,11 @@ namespace kokrotviz
         void *mDLHandle;
         std::string mLibraryPath;
         std::vector<byte> mImageData;
-        int mWidth, mHeight;
+        int mWidth, mHeight, mSeenFirstDimensions;
         LayerManager *mManager;
         
         std::map<kok_metric_type, Metric> mMetrics;
+        std::pair<dimension, dimension> mDimensions[ 2 ];
 
         enum Symbols {
             kokrot_initialize,

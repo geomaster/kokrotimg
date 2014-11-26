@@ -15,6 +15,7 @@ namespace kokrotviz
     public:
         VisualizationWindow(Gtk::Window* Window, Glib::RefPtr<Gtk::Builder> Builder, LayerManager *LayerMan);
         void redraw();
+        void notifyLayersChange();
 
     protected:
         Gtk::Box *mCanvasContainer;

@@ -64,6 +64,8 @@ namespace kokrotviz {
 
             VisualizationWindow         *mVisWindow;
 
+            RealmType                   mRealmType;
+
             bool mMetricsDirty, mScanActive;
 
             void onFileChosen();
@@ -81,7 +83,10 @@ namespace kokrotviz {
             void onMicrocosmSelected();
 
             std::mutex mMessageListMutex;
+            int mScanFinishedFlag;
             std::vector<std::string> mMessageList;
+
+            void changeRealm(RealmType);
     };
 
 }

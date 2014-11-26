@@ -10,7 +10,7 @@ using namespace kokrotviz;
 ControlWindow::ControlWindow(Gtk::ApplicationWindow *Window, Glib::RefPtr<Gtk::Builder> Builder, 
         KokrotImgDriver *Driver, VisualizationWindow* VW) :
     mWindow(Window), mBuilder(Builder), mDriver(Driver), mDispatcher(), mMetricsDirty(false), mScanActive(false),
-    mVisWindow(VW)
+    mVisWindow(VW), mRealmType(Realm_Macrocosm)
 {
     mFC = Utils::tryFindWidget<Gtk::FileChooserButton>("imageFileChooser", Builder);
     mFC->signal_file_set().connect(sigc::mem_fun(*this, &ControlWindow::onFileChosen));
@@ -71,6 +71,8 @@ ControlWindow::ControlWindow(Gtk::ApplicationWindow *Window, Glib::RefPtr<Gtk::B
     mDriver->getMessageReceivedEventSource().addHandler(Delegate<void(const std::string&)>::fromCallable(
         [this] (const std::string& msg) {
             {
+                std::cout << msg << std::endl;
+
                 std::lock_guard<std::mutex> ll(mMessageListMutex);
                 mMessageList.push_back(msg);
             }
@@ -85,11 +87,27 @@ ControlWindow::ControlWindow(Gtk::ApplicationWindow *Window, Glib::RefPtr<Gtk::B
 
     mDriver->getScanFinishedEventSource().addHandler(Delegate<void(bool)>::fromCallable(
         [this] (bool successful) {
+
             mScanActive = false;
 
             /* kludge alert */
             mDispatcher.emit();
+
+            {
+                std::lock_guard<std::mutex> ll(mMessageListMutex);
+                mScanFinishedFlag = true;
+            }
             mDispatcher.emit();
+        }));
+
+    mRealmChangedES.addHandler(Delegate<void(RealmType)>::fromCallable(
+        [this] (RealmType t) {
+            changeRealm(t);
+        }));
+
+    mDriver->getLayerManager()->getLayersChangedEventSource().addHandler(Delegate<void()>::fromCallable(
+        [this] () {
+            mVisWindow->redraw();
         }));
 
     mTVW.linkTreeView(tvw);
@@ -118,7 +136,9 @@ void ControlWindow::onNotification()
     Glib::RefPtr<Gtk::Adjustment> adj = mMessagesScrolledWindow->get_vadjustment();
     adj->set_value(adj->get_upper()); 
 
-    if (!mScanActive) {
+    if (!mScanActive  && mScanFinishedFlag) {
+        mScanFinishedFlag = false;
+
         mFC->set_sensitive(true);
         mScanButton->set_sensitive(true);
         mMicrocosmRadio->set_sensitive(true);
@@ -144,20 +164,38 @@ void ControlWindow::onNotification()
                 mMTVW.addMetric(type, m.TimeMs, m.MemoryBytes);
             }));
 
-        mLTVW.clear();
-        mLTVW.populateFrom(mDriver->getLayerManager());
-
-        mVisWindow->redraw();
+        changeRealm(mRealmType);
     }
+}
+
+void ControlWindow::changeRealm(RealmType t)
+{
+    std::cout << "changing realm to t " << t << std::endl;
+    mRealmType = t;
+
+    mDriver->getLayerManager()->setCanvasDimensions(mDriver->getDimensionsFor(t == Realm_Macrocosm ? 0 : 1));
+    mDriver->getLayerManager()->setLayerFilter(
+            Delegate<bool(int)>::fromCallable(
+                    [t] (int l) -> bool {
+                        return (t == Realm_Macrocosm ? l < KOKROTDBG_CLASS_MICRO_BASE : l >= KOKROTDBG_CLASS_MICRO_BASE);
+                    }));
+
+    mLTVW.clear();
+    mLTVW.populateFrom(mDriver->getLayerManager());
+
+    mVisWindow->notifyLayersChange();
+    mVisWindow->redraw();
 }
 
 void ControlWindow::onMacrocosmSelected()
 {
-    mRealmChangedES.fire(Realm_Macrocosm);
+    if (mMacrocosmRadio->get_active())
+        mRealmChangedES.fire(Realm_Macrocosm);
 }
 
 void ControlWindow::onMicrocosmSelected()
 {
-    mRealmChangedES.fire(Realm_Microcosm);
+    if (mMicrocosmRadio->get_active())
+        mRealmChangedES.fire(Realm_Microcosm);
 }
 

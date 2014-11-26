@@ -1,26 +1,37 @@
 #include "layerManager.h"
+#include "utils.h"
 #include <algorithm>
 #include <cstdlib>
 using namespace kokrotviz;
 
 
-LayerManager::LayerManager() : mSorted(true), mWidth(0), mHeight(0)
+LayerManager::LayerManager() : mSorted(true), mWidth(0), mHeight(0), mFilterActive(false)
 {
 
 }
 
-Layer::Layer() : mVisible(false), mOpacity(255), mZIndex(0)
+Layer::Layer() : mVisible(true), mOpacity(255), mZIndex(0), mLineWidth(5.0)
 {
-    /* FIXME: more pleasant random choosing! */
-    mColor.R = rand() % 256;
-    mColor.G = rand() % 256;
-    mColor.B = rand() % 256;
+    static float h = 0.f;
+    const float phireciproc = 0.618033989f;
+
+    float s = 0.9f;
+    float l = 0.8f;
+    h = fmod(h + phireciproc * 359.f, 360.f);
+
+    float r, g, b;
+    Utils::hsvToRgb(h, s, l, &r, &g, &b);
+
+    mColor.R = r * 255.0;
+    mColor.G = g * 255.0;
+    mColor.B = b * 255.0;
 }
+
 
 void LayerManager::clearLayers()
 {
-    visitLayers(Delegate<void(Layer&)>::fromCallable(
-        [] (Layer& l) {
+    visitLayers(Delegate<void(kok_debug_class, Layer&)>::fromCallable(
+        [] (kok_debug_class, Layer& l) {
             std::lock_guard<std::recursive_mutex> ll(l.Mutex);
             for (auto elem : l.getElements()) {
                 if (elem.Type == LET_Bitmap) {
@@ -47,11 +58,12 @@ Layer& LayerManager::getLayer(int Idx)
     return mLayers.back().second;
 }
 
-void LayerManager::visitLayers(Delegate<void(Layer&)> Visitor)
+void LayerManager::visitLayers(Delegate<void(kok_debug_class, Layer&)> Visitor)
 {
     sortIfNotSorted();
     for (auto &a : mLayers) {
-        Visitor(a.second);
+        if (!mFilterActive || mFilter(a.first))
+            Visitor(a.first, a.second);
     }
 }
 
@@ -66,7 +78,6 @@ void LayerManager::sortIfNotSorted()
                 return ((Layer*)(&(a.second)))->getZIndex() < ((Layer*)(&(b.second)))->getZIndex();
             });
     mSorted = true;
-
 }
 
 LayerManager::~LayerManager()
