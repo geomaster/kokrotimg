@@ -714,49 +714,53 @@ void hypothesize_code_locations(kok_data_t* k)
             kok_finder_t *bestcandidate = NULL;
             dimensionsq bestdsq = 0;
             
-            /* ...and for the neighboring finders, check this: */
-            for (l = j + 1; l <= j + 2 && l < n; ++l) {
-                if (l == i || l == j) continue;
+            if (i == 0 && j == 1 && n == 3) { /* let's pair them up, dis be sum gd shit */
+                bestcandidate = &k->finder_patterns[2];
+            } else {
+                /* ...and for the neighboring finders, check this: */
+                for (l = j + 1; l <= j + 2 && l < n; ++l) {
+                    if (l == i || l == j) continue;
 
-                kok_finder_t c = f[l];
+                    kok_finder_t c = f[l];
 
-                /* we set the center to negative if we want to exclude this finder */
-                if (c.center.x < 0) continue;
+                    /* we set the center to negative if we want to exclude this finder */
+                    if (c.center.x < 0) continue;
 
-                /* compute the distances to both a and b, and choose the smaller one */
-                sdimensionsq cbdsq = (c.center.x - a.center.x) * (c.center.x - a.center.x) +
-                    (c.center.y - a.center.y) * (c.center.y - a.center.y),
-                    cadsq = (c.center.x - b.center.x) * (c.center.x - b.center.x) +
-                        (c.center.y - b.center.y) * (c.center.y - b.center.y);
+                    /* compute the distances to both a and b, and choose the smaller one */
+                    sdimensionsq cbdsq = (c.center.x - a.center.x) * (c.center.x - a.center.x) +
+                        (c.center.y - a.center.y) * (c.center.y - a.center.y),
+                        cadsq = (c.center.x - b.center.x) * (c.center.x - b.center.x) +
+                            (c.center.y - b.center.y) * (c.center.y - b.center.y);
 
-                sdimensionsq cdistsq = min(cbdsq, cadsq);
+                    sdimensionsq cdistsq = min(cbdsq, cadsq);
 
-                /* check if the distance is ok within a threshold, and that the areas match
-                 * (so we avoid pairing bigger finders with significantly smaller ones
-                 * as they most likely do not constitute the same code) */
-                if (DISTANCE_SQUARED_EQUALS(cdistsq, distancesq) && FINDER_AREA_EQUALS(c.area, avgarea)) {
-                    /* compute some vectors for easy manipulation */
-                    kok_point_t ab = { b.center.x - a.center.x, b.center.y - a.center.y },
-                                ba = { -ab.x, -ab.y },
-                                ac = { c.center.x - a.center.x, c.center.y - a.center.y },
-                                bc = { c.center.x - b.center.x, c.center.y - b.center.y };
+                    /* check if the distance is ok within a threshold, and that the areas match
+                     * (so we avoid pairing bigger finders with significantly smaller ones
+                     * as they most likely do not constitute the same code) */
+                    if (DISTANCE_SQUARED_EQUALS(cdistsq, distancesq) && FINDER_AREA_EQUALS(c.area, avgarea)) {
+                        /* compute some vectors for easy manipulation */
+                        kok_point_t ab = { b.center.x - a.center.x, b.center.y - a.center.y },
+                                    ba = { -ab.x, -ab.y },
+                                    ac = { c.center.x - a.center.x, c.center.y - a.center.y },
+                                    bc = { c.center.x - b.center.x, c.center.y - b.center.y };
 
-                    /* compute the dot product of the BA and BC vectors, also AB and AC,
-                     * and take the smaller of them */
-                    sdimensionsq dot1 = DOT_PRODUCT(ba, bc), dot2 = DOT_PRODUCT(ab, ac),
-                                 dot = min(dot1, dot2);
+                        /* compute the dot product of the BA and BC vectors, also AB and AC,
+                         * and take the smaller of them */
+                        sdimensionsq dot1 = DOT_PRODUCT(ba, bc), dot2 = DOT_PRODUCT(ab, ac),
+                                     dot = min(dot1, dot2);
 
-                    /* okay, i lied, we didn't save on the sqrt, or maybe we did */
-                    real distance = sqrt(distancesq),
-                         cdis = sqrt(cdistsq);
+                        /* okay, i lied, we didn't save on the sqrt, or maybe we did */
+                        real distance = sqrt(distancesq),
+                             cdis = sqrt(cdistsq);
 
-                    /* this semantically tests for the angle, how close it is 
-                     * to 90 degrees, because the dot product of perpendicular
-                     * vectors is 0 */
-                    if (DOT_PRODUCT_ACCEPTABLE(dot, cdis, distance)) {
-                        if (!bestcandidate || cdistsq < bestdsq) {
-                            bestcandidate = &f[l];
-                            bestdsq = cdistsq;
+                        /* this semantically tests for the angle, how close it is 
+                         * to 90 degrees, because the dot product of perpendicular
+                         * vectors is 0 */
+                        if (DOT_PRODUCT_ACCEPTABLE(dot, cdis, distance)) {
+                            if (!bestcandidate || cdistsq < bestdsq) {
+                                bestcandidate = &f[l];
+                                bestdsq = cdistsq;
+                            }
                         }
                     }
                 }
