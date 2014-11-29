@@ -15,7 +15,7 @@ const int ALIGNMENT_PATTERN_COORDINATES[ MAX_QR_VERSION ][ 1 + MAX_ALIGNMENT_PAT
     /* v2 */  {  2,      6,      18,    -1,     -1,     -1,     -1,     -1     },
     /* v3 */  {  2,      6,      22,    -1,     -1,     -1,     -1,     -1     },
     /* v4 */  {  2,      6,      26,    -1,     -1,     -1,     -1,     -1     },
-    /* v5 */  {  2,      6,      30     -1,     -1,     -1,     -1,     -1     },
+    /* v5 */  {  2,      6,      30,    -1,     -1,     -1,     -1,     -1     },
     /* v6 */  {  2,      6,      34,    -1,     -1,     -1,     -1,     -1     },
     /* v7 */  {  3,      6,      22,     38,    -1,     -1,     -1,     -1     },
     /* v8 */  {  3,      6,      24,     42,    -1,     -1,     -1,     -1     },
@@ -590,6 +590,10 @@ void conjecture_alignment_patterns(kok_data_t* k)
     k->column_start_positions[5] = 2 * k->column_start_positions[6] - k->column_start_positions[7];
     k->row_start_positions[5] = 2 * k->row_start_positions[6] - k->row_start_positions[7];
 
+    k->column_start_positions[dim - 6] = 2 * k->column_start_positions[dim - 8] - k->column_start_positions[dim - 7];
+    k->row_start_positions[dim - 6] = 2 * k->row_start_positions[dim - 8] - k->row_start_positions[dim - 7];
+
+
 #   define ADD_ALIGNMENT_PATTERN(px, py, id_x, id_y) \
     do { \
         kok_alignpat_t align; \
@@ -622,9 +626,11 @@ void conjecture_alignment_patterns(kok_data_t* k)
     const int *aligncoords = &ALIGNMENT_PATTERN_COORDINATES[ k->decoded_qr_version - 1 ][ 1 ],
               aligncoordsz = *(aligncoords - 1);
 
+    printf("WHAT AM I SEEING? %d\n", ALIGNMENT_PATTERN_COORDINATES[ 4 ][ 2 ]);
     int i, j;
     for (i = 0; i < aligncoordsz; ++i) {
         for (j = 0; j < aligncoordsz; ++j) {
+            printf("%d %d\n",aligncoords[i],aligncoords[j]);
             ADD_ALIGNMENT_PATTERN(aligncoords[i], aligncoords[j], i, j);
             k->alignment_patterns[j][i] = aligns[j][i];
         }
@@ -677,8 +683,9 @@ int place_virtual_alignment_patterns(kok_data_t* k)
     pat.active = 2;
     double newx = (3 * k->column_start_positions[k->decoded_qr_dimension - 7] -
             k->column_start_positions[k->decoded_qr_dimension - 8]) / 2.0;
-    double slope = k->horizontal_timing_slope;//(sz - 3 >= 0 ? get_slope(k->alignment_patterns[0][sz - 3].imgspace_pos, 
-                //k->alignment_patterns[0][sz - 2].imgspace_pos): k->horizontal_timing_slope);
+    double slope = (sz - 3 >= 0 ? get_slope(k->alignment_patterns[0][sz - 3].imgspace_pos, 
+                k->alignment_patterns[0][sz - 2].imgspace_pos): k->horizontal_timing_slope);
+
     kok_pointf_t pbase = k->alignment_patterns[0][sz - 2].imgspace_pos;
     pbase.y = horizontal_slide(pbase, slope, newx);
     pbase.x = newx;
@@ -1045,6 +1052,11 @@ void read_final_qr_quad(kok_data_t* k, kok_alignpat_t q[4])
     quad[3].imgspace_pos.x += qrmod;
     quad[3].imgspace_pos.y += qrmod;
 
+    LOGF("Reading QR quad (%d, %d) (%d %d) (%d %d) (%d %d)",
+            quad[0].qrspace_pos.x, quad[0].qrspace_pos.y,
+            quad[1].qrspace_pos.x, quad[1].qrspace_pos.y,
+            quad[2].qrspace_pos.x, quad[2].qrspace_pos.y,
+            quad[3].qrspace_pos.x, quad[3].qrspace_pos.y);
     if (k->dbg_sink) {
         static sdimension xs[4], ys[4];
         int i;
@@ -1117,16 +1129,13 @@ void read_quad_module(kok_data_t* k, byte* ibuf, kok_point_t quad[4], int qrx, i
     sum /= 255;
     sum = pxc - sum;
 
-    if (buf[M2D(qrx, qry, MAX_QR_SIZE)].hits == 0) {
-        buf[M2D(qrx, qry, MAX_QR_SIZE)].hits = pxc;
-        buf[M2D(qrx, qry, MAX_QR_SIZE)].sum = sum;
-    }
+    buf[M2D(qrx, qry, MAX_QR_SIZE)].hits += pxc;
+    buf[M2D(qrx, qry, MAX_QR_SIZE)].sum += sum;
 
     if (k->dbg_sink) {
         kok_point_t p = { quad[0].x + quad[1].x + quad[2].x + quad[3].x, 
                           quad[0].y + quad[1].y + quad[2].y + quad[3].y, };
 
-        k->alignment_patterns[0][0].active = 0;
         p.x /= 4;
         p.y /= 4;
 
