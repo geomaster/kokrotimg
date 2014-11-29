@@ -35,7 +35,6 @@ void VisualizationWindow::drawElement(const Cairo::RefPtr<Cairo::Context>& cr, c
 {
     LayerElementType typ = el.Type;
     if (typ == LET_Bitmap) {
-        std::cout<<"bekdropz not ded"<<std::endl;
         Glib::RefPtr<Gdk::Pixbuf> pixbuf;
         auto it = mPixbufCache.find(el.Data.B.GUID);
 
@@ -52,7 +51,6 @@ void VisualizationWindow::drawElement(const Cairo::RefPtr<Cairo::Context>& cr, c
         cr->rectangle(0, 0, el.Data.B.Width, el.Data.B.Height);
         cr->fill();
     } else if (typ == LET_Polygon) {
-        std::cout<<"poligons not dead"<<std::endl;
         cr->move_to(el.Data.Poly.Data[0].X, el.Data.Poly.Data[0].Y);
 
         for (int i = 0; i < el.Data.Poly.Size; ++i) {
