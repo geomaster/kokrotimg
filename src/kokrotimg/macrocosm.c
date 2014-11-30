@@ -36,7 +36,7 @@ void binarize_image(kok_data_t* k)
     const dimension w = k->src_img_w, h = k->src_img_h;
 
     /* we are considering a d times d box around each pixel */
-    const int d = SAUVOLA_WINDOW_SIZE(k->src_img_area), dh = d / 2, d2 = d * d;
+    const int d = SAUVOLA_WINDOW_SIZE(k->src_img_w + k->src_img_h), dh = d / 2, d2 = d * d;
 
     ct_t* ct = k->cumulative_table;
     byte* binary = k->binary_img, *src = k->src_img;

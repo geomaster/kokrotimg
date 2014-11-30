@@ -15,7 +15,7 @@
 
 #define INSTRUMENTATION_ENABLED
 
-#define SAUVOLA_WINDOW_SIZE(sz)               (9 + (sz) / 32000) //(sz / 12000)
+#define SAUVOLA_WINDOW_SIZE(sz)               ((sz) / 16) //(sz / 12000)
 #define SAUVOLA_WINDOW_SIZE_SQ(sz)            (SAUVOLA_WINDOW_SIZE(sz) * SAUVOLA_WINDOW_SIZE(sz))
 #define SAUVOLA_K                             0.06
 #define SAUVOLA_R                             128
