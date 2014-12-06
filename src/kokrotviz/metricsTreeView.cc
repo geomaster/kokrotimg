@@ -49,6 +49,17 @@ void MetricsTreeView::addMetric(kok_metric_type Type, double Time, int Mem)
                 KOKROTDBG_METRIC_MACRO_CODE_LOCATION_HYPOTHESIZATION, "Hypothesizing of code locations") ;
         DEFINE_CATEGORY(
                 KOKROTDBG_METRIC_MACRO_ALLOCATION_OVERHEAD, "Memory allocation");
+
+        DEFINE_CATEGORY(
+                KOKROTDBG_METRIC_MICRO_CODE_PROJECTION, "Code projection");
+        DEFINE_CATEGORY(
+                KOKROTDBG_METRIC_MICRO_CODE_BINARIZATION, "Code binarization");
+        DEFINE_CATEGORY(
+                KOKROTDBG_METRIC_MICRO_CODE_REORIENTATION, "Code reorientation");
+        DEFINE_CATEGORY(
+                KOKROTDBG_METRIC_MICRO_SAMPLING_GRID_BUILD, "Sampling grid building");
+        DEFINE_CATEGORY(
+                KOKROTDBG_METRIC_MICRO_FINAL_READ, "Final QR code read");
         default: break;
     }
 
