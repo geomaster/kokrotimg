@@ -712,24 +712,21 @@ int place_virtual_alignment_patterns(kok_data_t* k)
 
     /* populate the offgrid virtual alignment patterns, used for reading 
      * data not between any currently populated patterns */
-    k->offgrid_patterns[ 1 ][ 1 ] = extend_px(k, sz - 1, 0);
-    k->offgrid_patterns[ 3 ][ 1 ] = extend_px(k, sz - 1, sz - 1);
-    
-    k->offgrid_patterns[ 2 ][ 0 ] = extend_py(k, 0, sz - 1);
-    k->offgrid_patterns[ 3 ][ 0 ] = extend_py(k, sz - 1, sz - 1);
-
-    k->offgrid_patterns[ 0 ][ 1 ] = extend_mx(k, 0, 0);
-    k->offgrid_patterns[ 0 ][ 0 ] = extend_my(k, 0, 0);
-    
-    k->offgrid_patterns[ 1 ][ 0 ] = extend_my(k, sz - 1, 0);
-    k->offgrid_patterns[ 2 ][ 1 ] = extend_mx(k, 0, sz - 1);
+    int i;
+    for (i = 0; i < sz; ++i) {
+        /* 0 - right, 1 - bottom, 2 - left, 3 - top */
+        k->extended_patterns[ 0 ][ i ] = extend_px(k, sz - 1, i);
+        k->extended_patterns[ 1 ][ i ] = extend_py(k, i, sz - 1);
+        k->extended_patterns[ 2 ][ i ] = extend_mx(k, 0, i);
+        k->extended_patterns[ 3 ][ i ] = extend_my(k, i, 0);
+    }
 
     kok_alignpat_t extra;
-    extra.qrspace_pos.x = k->offgrid_patterns[3][1].qrspace_pos.x;
-    extra.qrspace_pos.y = k->offgrid_patterns[3][0].qrspace_pos.y;
+    extra.qrspace_pos.x = k->extended_patterns[ 0 ][ sz - 1 ].qrspace_pos.x;
+    extra.qrspace_pos.y = k->extended_patterns[ 1 ][ sz - 1 ].qrspace_pos.y;
 
-    extra.imgspace_pos.x = k->offgrid_patterns[3][1].imgspace_pos.x;
-    extra.imgspace_pos.y = k->offgrid_patterns[3][0].imgspace_pos.y;
+    extra.imgspace_pos.x = k->extended_patterns[ 0 ][ sz - 1 ].imgspace_pos.x;
+    extra.imgspace_pos.y = k->extended_patterns[ 1 ][ sz - 1 ].imgspace_pos.y;
 
     extra.active = 2;
 
@@ -988,51 +985,45 @@ void read_final_qr(kok_data_t* k)
 {
     int aps = k->alignment_patterns_1D;
     int i, j;
-    for (i = 0; i < aps - 1; ++i) 
-        for (j = 0; j < aps - 1; ++j) {
+    for (i = -1; i < aps; ++i) 
+        for (j = -1; j < aps; ++j) {
+            if ((i == -1 && j == -1) || /* upper-left corner, not needed */
+                (i == -1 && j == aps - 1) || /* upper-right corner */
+                (i == aps - 1 && j == -1)) /* lower-left corner */
+                continue;
+
             kok_alignpat_t quad[] = {
-                k->alignment_patterns[i][j],
-                k->alignment_patterns[i][j + 1],
-                k->alignment_patterns[i + 1][j],
-                k->alignment_patterns[i + 1][j + 1]
+                get_alignment_pattern(k, j, i),
+                get_alignment_pattern(k, j + 1, i),
+                get_alignment_pattern(k, j, i + 1),
+                get_alignment_pattern(k, j + 1, i + 1)
             };
             read_final_qr_quad(k, quad);
         }
-
-    kok_alignpat_t quads[][4] = {
-        {
-            k->offgrid_patterns[0][0],
-            k->offgrid_patterns[1][0],
-            k->alignment_patterns[0][0],
-            k->alignment_patterns[0][aps - 1]
-        },
-        {
-            k->offgrid_patterns[0][1],
-            k->alignment_patterns[0][0],
-            k->offgrid_patterns[2][1],
-            k->alignment_patterns[aps - 1][0]
-        },
-        {
-            k->alignment_patterns[aps - 1][0],
-            k->alignment_patterns[aps - 1][aps - 1],
-            k->offgrid_patterns[2][0],
-            k->offgrid_patterns[3][0]
-        },
-        {
-            k->alignment_patterns[0][aps - 1],
-            k->offgrid_patterns[1][1],
-            k->offgrid_patterns[3][0],
-            k->extra_offgrid_pattern
-        }
-    };
-
-    for (i = 0; i < 4; ++i) {
-        read_final_qr_quad(k, quads[i]);
-    }
-
-
-
 }
+
+kok_alignpat_t get_alignment_pattern(kok_data_t* k, int idx, int idy)
+{
+    int aps = k->alignment_patterns_1D;
+    if (idx == aps && idy == aps)
+        return( k->extra_offgrid_pattern );
+    else if (idx == aps && idy < aps)
+        return( k->extended_patterns[ 0 ][ idy ] );
+    else if (idy == aps && idx < aps)
+        return( k->extended_patterns[ 1 ][ idx ] );
+    else if (idx == -1 && idy < aps)
+        return( k->extended_patterns[ 2 ][ idy ] );
+    else if (idy == -1 && idx < aps)
+        return( k->extended_patterns[ 3 ][ idx ] );
+    else if (idx >= 0 && idy >= 0 && idy < aps && idx < aps)
+        return( k->alignment_patterns[ idy ][ idx ] );
+    else {
+        kok_alignpat_t fail = { { 0, 0 }, { 0, 0 }, -1 };
+        ASSERT(0, "Invalid position supplied to get_alignment_pattern()");
+        return( fail );
+    }
+}
+
 
 void read_final_qr_quad(kok_data_t* k, kok_alignpat_t q[4])
 {

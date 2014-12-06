@@ -136,7 +136,7 @@ typedef struct kok_data_t {
 
     kok_quad_t qr_codes[ MAX_QR_CODES ];
     kok_alignpat_t alignment_patterns[ MAX_ALIGNMENT_PATTERNS ][ MAX_ALIGNMENT_PATTERNS ],
-                   offgrid_patterns[ 4 ][ 2 ],
+                   extended_patterns[ 4 ][ MAX_ALIGNMENT_PATTERNS ],
                    extra_offgrid_pattern;
     int alignment_patterns_1D;
 
