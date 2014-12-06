@@ -72,7 +72,8 @@ typedef struct kok_debug_sink_t {
 
 #define KOKROTDBG_METRIC_MICRO_CODE_PROJECTION                    2001
 #define KOKROTDBG_METRIC_MICRO_CODE_BINARIZATION                  2002
-#define KOKROTDBG_METRIC_MICRO_SAMPLING_GRID_BUILD                2003
-#define KOKROTDBG_METRIC_MICRO_FINAL_READ                         2004
+#define KOKROTDBG_METRIC_MICRO_CODE_REORIENTATION                 2003
+#define KOKROTDBG_METRIC_MICRO_SAMPLING_GRID_BUILD                2004
+#define KOKROTDBG_METRIC_MICRO_FINAL_READ                         2005
 
 #endif
