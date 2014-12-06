@@ -1201,7 +1201,11 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx, byte* outmatrix)
     kokrot_component = "microcosm";
 
     LOGS("Projecting code");
+
+    START_INSTRUMENTATION();
     project_code(k, k->qr_codes[qr_idx], NULL);
+    RECORD_METRIC(k, KOKROTDBG_METRIC_MICRO_CODE_PROJECTION);
+
     LOGS("Done projecting code");
 
     if (k->dbg_sink) {
@@ -1211,8 +1215,14 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx, byte* outmatrix)
     }
 
     LOGS("Binarizing code");
+
+    START_INSTRUMENTATION();
     binarize_code(k);
+    RECORD_METRIC(k, KOKROTDBG_METRIC_MICRO_CODE_BINARIZATION);
+
     LOGS("Done binarizing code");
+
+    START_INSTRUMENTATION();
 
     LOGS("Guessing code version");
     decode_qr(k, qr_idx);
@@ -1226,11 +1236,15 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx, byte* outmatrix)
     fix_code_orientation(k);
     LOGS("Done fixing code orientation");
 
+    RECORD_METRIC(k, KOKROTDBG_METRIC_MICRO_CODE_REORIENTATION);
+
     if (k->dbg_sink) {
         LOGS("Dumping binarized code");
         dump_binarized_code(k);
         LOGS("Done dumping binarized code");
     }
+    
+    START_INSTRUMENTATION();
 
     LOGS("Parsing timing patterns");
     if (!parse_timing_patterns(k)) {
@@ -1254,8 +1268,14 @@ microcosm_err_t kokrotimg_microcosm(kok_data_t* k, int qr_idx, byte* outmatrix)
     }
     LOGS("Done placing virtual alignment patterns");
 
+    RECORD_METRIC(k, KOKROTDBG_METRIC_MICRO_SAMPLING_GRID_BUILD);
+
     LOGS("Reading final QR");
+
+    START_INSTRUMENTATION();
     read_final_qr(k);
+    RECORD_METRIC(k, KOKROTDBG_METRIC_MICRO_FINAL_READ);
+
     LOGS("Done reading final QR");
 
     int dim;
