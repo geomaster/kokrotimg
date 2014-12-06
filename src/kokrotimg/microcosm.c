@@ -98,7 +98,7 @@ void project_code(kok_data_t* k, kok_quad_t code, int* pxsum)
     int xi = 0, yi = 0;
 
     /* the loop works fine */
-    for (yl3 = min(code.p2.y, code.p3.y), yl4 = code.p1.y; yl3 <= max(code.p2.y, code.p3.y); yl3 += l3ystep, yl4 += l4ystep, xl3 += l3xstep, xl4 += l4xstep) {
+    for (yl3 = code.p2.y, yl4 = code.p1.y; ; yl3 += l3ystep, yl4 += l4ystep, xl3 += l3xstep, xl4 += l4xstep) {
         double alpha = 0.0;
 
         xi = 0;
