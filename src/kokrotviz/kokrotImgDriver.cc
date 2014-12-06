@@ -268,7 +268,7 @@ void KokrotImgDriver::onDebugAddPolygon(const sdimension* xs, const sdimension* 
         pts[i] = { .X = xs[i], .Y = ys[i] };
 
     Polygon poly = {
-        .Size = sz,
+        .Size = (dimension) sz,
         .Data = pts
     };
 
