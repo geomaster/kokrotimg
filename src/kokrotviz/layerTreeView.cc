@@ -62,7 +62,7 @@ void LayerTreeView::populateFrom(LayerManager* Manager)
             struct myguard {
                 LayerTreeView *v;
                 myguard(LayerTreeView* p) : v(p) { p->mPopulating = true; }
-                ~myguard() { std::cout << "yes, false." << std::endl; v->mPopulating = false; }
+                ~myguard() { v->mPopulating = false; }
             } _g(this);
             
             row[mColumnRecord.mNameColumn] = name;

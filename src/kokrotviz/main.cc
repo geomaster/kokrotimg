@@ -10,18 +10,6 @@
 Gtk::ApplicationWindow* pWindow = 0;
 Gtk::Window *pVisWindow = 0;
 
-void imagechosen(const std::string &filename)
-{
-
-    std::cout << "chosen image " << filename << std::endl;
-}
-
-void scanreq()
-{
-    std::cout << "scan requested" << std::endl;
-
-}
-
 int main (int argc, char **argv)
 {
     Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "org.kokrotimg.kokrotviz");

@@ -39,7 +39,6 @@ ControlWindow::ControlWindow(Gtk::ApplicationWindow *Window, Glib::RefPtr<Gtk::B
             try {
                 mDriver->loadImage(fname);
             } catch (kokrotviz::Exception& e) {
-                std::cout << "Kurac!\n" << e.what() << std::endl;
                 mScanButton->set_sensitive(false);
             }
         }));
@@ -62,8 +61,6 @@ ControlWindow::ControlWindow(Gtk::ApplicationWindow *Window, Glib::RefPtr<Gtk::B
                 mMacrocosmRadio->set_sensitive(true);
 
                 mScanActive = false;
-
-                std::cout << "Kurchina!\n" << e.what() << std::endl;
             }
         }));
 
@@ -170,7 +167,6 @@ void ControlWindow::onNotification()
 
 void ControlWindow::changeRealm(RealmType t)
 {
-    std::cout << "changing realm to t " << t << std::endl;
     mRealmType = t;
 
     mDriver->getLayerManager()->setCanvasDimensions(mDriver->getDimensionsFor(t == Realm_Macrocosm ? 0 : 1));
