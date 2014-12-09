@@ -12,7 +12,10 @@ Gtk::Window *pVisWindow = 0;
 
 int main (int argc, char **argv)
 {
-    Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc, argv, "org.kokrotimg.kokrotviz");
+    int argc_dummy = 1;
+    char * argv_dummy[] = { argv[0] },
+         ** wtf = &argv_dummy[0];
+    Glib::RefPtr<Gtk::Application> app = Gtk::Application::create(argc_dummy, wtf, "org.kokrotimg.kokrotviz");
 
     //Load the GtkBuilder file and instantiate its widgets:
     Glib::RefPtr<Gtk::Builder> refBuilder = Gtk::Builder::create();
@@ -38,7 +41,7 @@ int main (int argc, char **argv)
     {
         kokrotviz::LayerManager layerMgr;
 
-        kokrotviz::KokrotImgDriver driver("lib/libkokrotimg.so");
+        kokrotviz::KokrotImgDriver driver((argc > 1 ? argv[1] : "lib/libkokrotimg.so"));
         driver.setLayerManager(&layerMgr);
 
         kokrotviz::VisualizationWindow vw(pVisWindow, refBuilder, &layerMgr);

@@ -39,6 +39,7 @@ ControlWindow::ControlWindow(Gtk::ApplicationWindow *Window, Glib::RefPtr<Gtk::B
             try {
                 mDriver->loadImage(fname);
             } catch (kokrotviz::Exception& e) {
+                std::cout << "Loading failed: " << e.what() << std::endl;
                 mScanButton->set_sensitive(false);
             }
         }));
