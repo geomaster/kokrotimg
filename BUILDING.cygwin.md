@@ -18,7 +18,7 @@ Note that I had no problems with building KokrotImg (the library
 itself) on Windows whatsoever, the problem was with getting gtkmm to
 play nice with CMake  and various stuff I have in the tree. This is all 
 related to the optional debug visualization tool, KokrotViz, so don't 
-be intimidatet. And don't try it yourself, it's a hassle, believe me.
+be intimidated. And don't try it yourself, it's a hassle, believe me.
 I haven't slept in three nights.
 
 ## Setting up the environment
@@ -37,13 +37,15 @@ It goes like this:
     * cmake
     * pkg-config
     * xinit
+
    These should pull in all the necessary dependencies, like gdk, 
    binutils, blah blah.
 3. Open the Cygwin terminal, navigate to a directory of your choice and
    run the following commands
-    <pre>
+<pre>
 $ git clone https://github.com/geomaster/kokrotimg.git
-$ cd kokrotimg</pre>
+$ cd kokrotimg
+</pre>
 
 ## Building
 
@@ -56,23 +58,28 @@ $ cmake -DCMAKE_BUILD_TYPE=Debug ../..
 $ make
 $ cd ../release
 $ cmake -DCMAKE_BUILD_TYPE=Release ../..
-$ make</pre>
+$ make
+</pre>
 
 Now you should actually be all set up; the binaries now reside in 
 build/debug/bin and build/release/bin.
 
+
 ## Running
 
 1. To run kokrotviz, you need to start X first. Run:
-    <pre>
-$ startxwin</pre>
+<pre>
+$ startxwin
+</pre>
    You should see an xterm window show up.
 5. Now, we're ready to run kokrotviz:
-    <pre>
+<pre>
 $ cd build/debug <em>[or build/release]</em>
-$ export DISPLAY=:0 bin/kokrotviz bin/libkokrotimg.dll</pre>
+$ export DISPLAY=:0 bin/kokrotviz bin/libkokrotimg.dll
+</pre>
 
 It should all be running smoothly. Welcome to 1992!
+
 
 ## Troubleshooting
 
