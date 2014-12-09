@@ -85,7 +85,7 @@ It should all be running smoothly. Welcome to 1992!
 
 To use the library, one need not do a lot of things. Add the include
 directory from the build tree to your compiler include paths (so you
-will be able to #include <kokrotimg/kokrotimg.h>) and then link against
+will be able to #include &lt;kokrotimg/kokrotimg.h&gt;) and then link against
 the libkokrotimg.dll dynamic library. This is of course possible only
 when you're compiling your program on Cygwin and it is obviously not
 ABI- or whatever-compatible with MSVC or MinGW. I will add a MSVC and
